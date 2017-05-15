@@ -1,0 +1,13 @@
+1. Reverse a string. ‘Hello’ -> ‘olleH’
+
+2. Change all small letters to big and vise versa . ‘Hey’ -> ‘hEY’
+
+3. Return count of each letter in string. ‘Book’ -> ‘1B2o1k’
+
+4. Remove all numbers in String.  ‘H4e6 y5’ -> ‘He y’
+
+5. Change whitespaces with single comma. ‘H4  e6 y5’ -> ‘H4,e6,y5’
+
+6. Find count of word ‘he’ in String. ‘hello, he is bad guy.’ -> ‘1’
+
+7. Reverse every second word in String. ‘Hey it is me’-> ‘Hey ti is em’
