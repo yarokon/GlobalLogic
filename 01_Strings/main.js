@@ -71,14 +71,13 @@ console.log(getCount('hello, he is bad guy.', 'he'));
 function reverseSecondWord(str) {
   const words = str.split(' '),
         length = words.length;
-  let result = '';
+  let   result = [];
 
-  for (let i = 0; i < length; i++) {
-    result += i % 2 ? reverseString(words[i]) : words[i];
-    result += ' ';
-  }
+  result = words.map( (word, i) => {
+    return i % 2 ? reverseString(word) : word;
+  });
 
-  return result.trim();
+  return result.join(' ');
 }
 
 console.log(reverseSecondWord('Hey it is me'));
