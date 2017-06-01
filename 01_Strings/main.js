@@ -69,8 +69,7 @@ console.log(getCount('hello, he is bad guy.', 'he'));
 
 // 7. Reverse every second word in String. 'Hey it is me'-> 'Hey ti is em'
 function reverseSecondWord(str) {
-  const words = str.split(' '),
-        length = words.length;
+  const words = str.split(' ');
   let   result = [];
 
   result = words.map( (word, i) => {
