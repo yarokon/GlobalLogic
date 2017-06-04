@@ -1,10 +1,9 @@
 'use strict';
 
 const gameSettings = {
-  board: document.getElementById('board'),
-  numberOfCards: 1,
   N: 5,
   dispCoeff: 4,
+  board: document.getElementById('board'),
   get totalCells() {
     return this.N ** 2;
   },
@@ -34,10 +33,9 @@ class Cell {
 
 class Card {
   constructor(options) {
-    Object.assign(this, options);
-    this.id = Card.incId();
-    this.cellsArr = [];
+    Object.setPrototypeOf(Card.prototype, options);
 
+    this.cellsList = [];
     this.applyCard();
   }
 
@@ -45,17 +43,20 @@ class Card {
     this.createCard();
     this.initializeState();
     this.insertColumns();
+    this.createTrashCover();
+    this.addEvents();
   }
 
   createCard() {
     this.card = document.createElement('div');
-    this.card.id = Card.id
+    this.card.id = Card.id;
+    Card.incId();
     this.board.append(this.card);
   }
 
   removeCard() {
     this.card.remove();
-    Card.decId();
+    this.isDeleted = true;
   }
 
   initializeState() {
@@ -81,19 +82,6 @@ class Card {
     return columnState;
   }
 
-  createColumn(columnNumber) {
-    this.column = document.createElement('div');
-    this.column.classList.add('column');
-
-    this.state[columnNumber].forEach(number => {
-      const cell = new Cell(number);
-      this.cellsArr.push(cell);
-      this.column.append( cell.createCell() );
-    });
-
-    return this.column;
-  }
-
   insertColumns() {
     for (let i = 0; i < this.N; i++) {
       const column = this.createColumn(i);
@@ -101,20 +89,127 @@ class Card {
     }
   }
 
-  static incId() {
-    return ++Card._id;
+  createColumn(columnNumber) {
+    const column = document.createElement('div');
+    column.classList.add('column');
+
+    this.state[columnNumber].forEach(number => {
+      const cell = new Cell(number);
+      this.cellsList.push(cell);
+      column.append( cell.createCell() );
+    });
+
+    return column;
   }
 
-  static decId() {
-    return --Card._id;
+  createTrashCover() {
+    this.cover = document.createElement('div');
+    this.cover.classList.add('cardCover');
+
+    const img = new Image();
+    img.src = 'images/trash.png';
+    img.alt = 'remove';
+
+    this.cover.append(img);
+    this.card.append(this.cover);
+  }
+
+  addEvents() {
+    const img = this.cover.querySelector('img');
+    img.addEventListener('click', this.removeCard.bind(this));
+  }
+
+  static incId() {
+    return Card._id++;
   }
   
   static get id() {
-   return `card_${Card._id}`;
+    return `card_${Card._id}`;
   }
 }
 
 Card._id = 0;
+
+class Game {
+  constructor(options) {
+    Object.setPrototypeOf(Game.prototype, options);
+
+    this.cardsList = {};
+    this.addEvents();
+  }
+
+  addCard() {
+    this.cardsList[Card.id] = new Card(settings);
+  }
+
+  showCard() {
+    this.addCard();
+  }
+
+  startGame() {
+    this.checkCard();
+    this.removeTrashCovers();
+    this.removeButtons();
+    this.addGetNextButton();
+    this.addTray();
+
+    this.generateLuckyNumbers();
+  }
+
+  removeTrashCovers() {
+    console.log(this.cardsList);
+    for (let cardId in this.cardsList) {
+      this.cardsList[cardId].cover.remove();
+      delete this.cardsList[cardId].cover;
+    }
+  }
+
+  removeButtons() {
+    const nav = document.querySelector('nav');
+
+    while (nav.hasChildNodes()) {
+      nav.removeChild(nav.lastChild);
+    }
+  }
+
+  addGetNextButton() {
+    const nav = document.querySelector('nav');
+
+    const button = document.createElement('button');
+    button.textContent = 'Generate Number';
+
+    nav.append(button);
+  }
+
+  addTray() {
+    const tray = document.createElement('div');
+    tray.id = 'tray';
+
+    this.board.after(tray);
+  }
+
+
+  checkCard() {
+    for (const cardId in this.cardsList) {
+      if (this.cardsList[cardId].isDeleted) {
+        delete this.cardsList[cardId];
+      }
+    }
+  }
+
+  generateLuckyNumbers() {
+    this.luckyNumbers = createNumbersArray(1, this.totalNumbers);
+    shuffleArray(this.luckyNumbers);
+    console.log(this.luckyNumbers);
+  }
+
+  addEvents() {
+    const addCardButton = document.getElementById('addCard');
+    const startGame = document.getElementById('startGame');
+    addCardButton.addEventListener('click', this.addCard.bind(this));
+    startGame.addEventListener('click', this.startGame.bind(this));
+  }
+}
 
 function shuffleArray(arr, times=10) {
   while(times-- > 0) {
@@ -132,6 +227,5 @@ function createNumbersArray(min, max) {
   return arr;
 }
 
-new Card(settings);
-new Card(settings);
-new Card(settings);
+const game = new Game(settings);
+game.showCard();
