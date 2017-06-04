@@ -78,7 +78,7 @@ class Card {
   createCard() {
     this.card = document.createElement('div');
     this.card.id = Card.id;
-    Card.incId();
+    Card.incrementId();
     this.board.append(this.card);
   }
 
@@ -147,7 +147,7 @@ class Card {
     img.addEventListener('click', this.removeCard.bind(this));
   }
 
-  static incId() {
+  static incrementId() {
     return Card._id++;
   }
   
@@ -162,12 +162,12 @@ class Game {
   constructor(options) {
     Object.setPrototypeOf(Game.prototype, options);
 
-    this.cardsList = {};
+    this.cardsList = new Set();
     this.addEvents();
   }
 
   addCard() {
-    this.cardsList[Card.id] = new Card(settings);
+    this.cardsList.add( new Card(settings) );
   }
 
   showCard() {
@@ -178,16 +178,15 @@ class Game {
     this.checkCard();
     this.removeTrashCovers();
     this.removeButtons();
-    this.addGetNextButton();
     this.addTray();
 
     this.generateLuckyNumbers();
   }
 
   removeTrashCovers() {
-    for (let cardId in this.cardsList) {
-      this.cardsList[cardId].cover.remove();
-      delete this.cardsList[cardId].cover;
+    for(const card of this.cardsList) {
+      card.cover.remove();
+      delete card.cover;
     }
   }
 
@@ -199,15 +198,6 @@ class Game {
     }
   }
 
-  addGetNextButton() {
-    const nav = document.querySelector('nav');
-
-    const button = document.createElement('button');
-    button.textContent = 'Generate Number';
-
-    nav.append(button);
-  }
-
   addTray() {
     const tray = document.createElement('div');
     tray.id = 'tray';
@@ -215,11 +205,10 @@ class Game {
     this.board.after(tray);
   }
 
-
   checkCard() {
-    for (const cardId in this.cardsList) {
-      if (this.cardsList[cardId].isDeleted) {
-        delete this.cardsList[cardId];
+    for(const card of this.cardsList) {
+      if (card.isDeleted) {
+        this.cardsList.delete(card);
       }
     }
   }
