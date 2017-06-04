@@ -25,9 +25,37 @@ class Cell {
   createCell() {
     this.cell = document.createElement('div');
     this.cell.classList.add('cell');
-    this.cell.textContent = this.number;
+
+    this.createFlipContainer();
+    this.addEvents();
 
     return this.cell;
+  }
+
+  createFlipContainer() {
+    const container = document.createElement('div'),
+          front = document.createElement('figure'),
+          back = document.createElement('figure');
+
+    front.classList.add('front');
+    front.textContent = this.number;
+
+    back.classList.add('back');
+    back.textContent = this.number;
+
+    container.classList.add('container');
+    container.append(front, back);
+    this.container = container;
+
+    this.cell.append(container);
+  }
+
+  addEvents() {
+    this.container.addEventListener('click', () => {
+      this.container.classList.toggle('flipped');
+
+      this.flipped = this.container.classList.contains('flipped');
+    });
   }
 }
 
@@ -157,7 +185,6 @@ class Game {
   }
 
   removeTrashCovers() {
-    console.log(this.cardsList);
     for (let cardId in this.cardsList) {
       this.cardsList[cardId].cover.remove();
       delete this.cardsList[cardId].cover;
@@ -200,7 +227,6 @@ class Game {
   generateLuckyNumbers() {
     this.luckyNumbers = createNumbersArray(1, this.totalNumbers);
     shuffleArray(this.luckyNumbers);
-    console.log(this.luckyNumbers);
   }
 
   addEvents() {
