@@ -72,7 +72,7 @@ button {
 .container {
   width: 100%;
   height: 100%;
-  transition: transform 1s ease-in-out;
+  transition: transform 1s ease-out;
   transform-style: preserve-3d;
 }
 
@@ -101,4 +101,38 @@ button {
 
 figure {
   margin: 0;
+}
+
+#basket {
+  width: 276px;
+  height: 70px;
+  background: #9e9e9e;
+  display: flex;
+  margin: auto;
+  overflow: hidden;
+}
+
+.ball {
+  width: 52px;
+  height: 52px;
+  line-height: 52px;
+  text-align: center;
+  font-weight: bold;
+  background: yellow;
+  border-radius: 50%;
+  margin: auto 0;
+  position: relative;
+  left: -52px;
+  transition: all 2s ease-in-out;
+  user-select: none;
+}
+
+.show {
+  left:  calc(50% - 26px);
+  transform: rotateZ( 360deg );
+}
+
+.hide {
+  left:  100%;
+  transform: rotateZ( calc(360deg * 2) );
 }

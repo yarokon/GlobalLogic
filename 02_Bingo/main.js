@@ -159,15 +159,17 @@ class Card {
 Card._id = 0;
 
 class Game {
-  constructor(options) {
-    Object.setPrototypeOf(Game.prototype, options);
-
+  constructor() {
     this.cardsList = new Set();
     this.addEvents();
   }
 
   addCard() {
-    this.cardsList.add( new Card(settings) );
+    this.checkCard();
+
+    if (this.cardsList.size < 3) {
+      this.cardsList.add( new Card(settings) );
+    }
   }
 
   showCard() {
@@ -176,11 +178,15 @@ class Game {
 
   startGame() {
     this.checkCard();
+
+    if (this.cardsList.size === 0) {
+      return;
+    }
+
     this.removeTrashCovers();
     this.removeButtons();
-    this.addTray();
 
-    this.generateLuckyNumbers();
+    this.basket = new Basket(settings);
   }
 
   removeTrashCovers() {
@@ -193,16 +199,7 @@ class Game {
   removeButtons() {
     const nav = document.querySelector('nav');
 
-    while (nav.hasChildNodes()) {
-      nav.removeChild(nav.lastChild);
-    }
-  }
-
-  addTray() {
-    const tray = document.createElement('div');
-    tray.id = 'tray';
-
-    this.board.after(tray);
+    nav.remove();
   }
 
   checkCard() {
@@ -211,11 +208,6 @@ class Game {
         this.cardsList.delete(card);
       }
     }
-  }
-
-  generateLuckyNumbers() {
-    this.luckyNumbers = createNumbersArray(1, this.totalNumbers);
-    shuffleArray(this.luckyNumbers);
   }
 
   addEvents() {
@@ -242,5 +234,74 @@ function createNumbersArray(min, max) {
   return arr;
 }
 
-const game = new Game(settings);
+class Basket {
+  constructor(options) {
+    Object.setPrototypeOf(Basket.prototype, options);
+    this.queue = [];
+
+    this.addBasket();
+    this.generateLuckyNumbers();
+
+    this.tick();
+    setInterval(this.tick.bind(this), 3000);
+  }
+
+  addBasket() {
+    this.basket = document.createElement('div');
+    this.basket.id = 'basket';
+
+    this.board.after(this.basket);
+  }
+
+  generateLuckyNumbers() {
+    this.luckyNumbers = createNumbersArray(1, this.totalNumbers);
+    shuffleArray(this.luckyNumbers);
+  }
+
+  tick() {
+    this.removeOldBall();
+    this.addBall( this.createBall() );
+    this.animateBalls();
+  }
+
+  removeOldBall() {
+    if (this.queue.length === 2) {
+      const oldBall = this.queue.pop();
+      oldBall.remove();
+    }
+  }
+
+  createBall() {
+    const ball = document.createElement('div');
+    ball.classList.add('ball');
+    ball.textContent = this.nextNumber();
+
+    return ball;
+  }
+
+  nextNumber() {
+    shuffleArray(this.luckyNumbers, 3);
+    return this.luckyNumbers.pop();
+  }
+
+  addBall(ball) {
+    this.basket.append(ball);
+    this.queue.unshift(ball);
+  }
+
+  animateBalls() {
+    const [newBall, oldBall] = this.queue;
+
+    setTimeout(() => {
+      newBall.classList.add('show');
+
+      if (oldBall) {
+        oldBall.classList.remove('show');
+        oldBall.classList.add('hide');
+      }
+    }, 0);
+  }
+}
+
+const game = new Game();
 game.showCard();
