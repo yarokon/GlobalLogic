@@ -285,21 +285,21 @@ class Basket {
   }
 
   addBall(ball) {
-    this.basket.append(ball);
+    this.basket.prepend(ball);
     this.queue.unshift(ball);
   }
 
   animateBalls() {
     const [newBall, oldBall] = this.queue;
 
+    if (oldBall) {
+      oldBall.classList.remove('show');
+      oldBall.classList.add('hide');
+    }
+
     setTimeout(() => {
       newBall.classList.add('show');
-
-      if (oldBall) {
-        oldBall.classList.remove('show');
-        oldBall.classList.add('hide');
-      }
-    }, 0);
+    }, 50);
   }
 }
 
