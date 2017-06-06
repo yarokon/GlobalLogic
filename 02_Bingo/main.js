@@ -1,9 +1,8 @@
 'use strict';
 
-const gameSettings = {
+const gameSettings = Object.assign( Object.create(null), {
   N: 5,
   dispCoeff: 4,
-  board: document.getElementById('board'),
   get totalCells() {
     return this.N ** 2;
   },
@@ -13,20 +12,52 @@ const gameSettings = {
   get columnLength() {
     return this.N * this.dispCoeff;
   }
-}
+});
 
-const settings = Object.assign( Object.create(null), gameSettings );
+class _Array {
+  static create2DArray(max) {
+    const arr = [];
 
-class Cell {
-  constructor(number) {
-    this.number = number;
+    for (let i = 0; i < max; i++) {
+      arr.push([]);
+    }
+
+    return arr;
   }
 
-  createCell() {
+  static createNumbersArray(min, max) {
+    const arr = [];
+
+    for(let i = min; i <= max; i++) {
+      arr.push(i);
+    }
+
+    return arr;
+  }
+
+  static shuffleArray(arr, times=10) {
+    while(times-- > 0) {
+      arr.sort(() => Math.random() - 0.5);
+    }
+  }
+}
+
+/**********************************************************************/
+
+class Cell {
+  constructor(number, parent) {
+    this.number = number;
+    this.parent = parent;
+    this.flipped = false;
+  }
+
+  createDOMCell() {
+    const container = this.createFlipContainer();
+
     this.cell = document.createElement('div');
     this.cell.classList.add('cell');
+    this.cell.append(container);
 
-    this.createFlipContainer();
     this.addEvents();
 
     return this.cell;
@@ -45,51 +76,66 @@ class Cell {
 
     container.classList.add('container');
     container.append(front, back);
-    this.container = container;
 
-    this.cell.append(container);
+    return container;
   }
 
   addEvents() {
-    this.container.addEventListener('click', () => {
-      this.container.classList.toggle('flipped');
+    const container = this.cell.querySelector('.container');
 
-      this.flipped = this.container.classList.contains('flipped');
+    container.addEventListener('click', () => {
+      const match = this.parent.numbersQueue.find(value => {
+        return value === this.number;
+      });
+
+      if (match && !this.flipped) {
+        container.classList.add('flipped');
+        this.flipped = true;
+      }
+
+      // unlock the cell's turning over
+      // container.classList.toggle('flipped');
+      // this.flipped = container.classList.contains('flipped');
     });
   }
 }
 
+/**********************************************************************/
+
 class Card {
-  constructor(options) {
-    Object.setPrototypeOf(Card.prototype, options);
-
-    this.cellsList = [];
-    this.applyCard();
+  constructor() {
+    Object.setPrototypeOf(Card.prototype, gameSettings);
+    
+    this.verticalCellsList = _Array.create2DArray(this.N);
   }
 
-  applyCard() {
-    this.createCard();
-    this.initializeState();
-    this.insertColumns();
-    this.createTrashCover();
-    this.addEvents();
-  }
-
-  createCard() {
+  createDOMCard() {
     this.card = document.createElement('div');
     this.card.id = Card.id;
     Card.incrementId();
-    this.board.append(this.card);
+
+    this.applyCard();
+
+    return this.card;
   }
 
-  removeCard() {
+  removeDOMCard() {
     this.card.remove();
     this.isDeleted = true;
   }
 
+  applyCard() {
+    this.initializeState();
+    this.insertColumns();
+
+    this.horizontalCellsList = this.reverseCellsList(this.verticalCellsList);
+
+    this.createTrashCover();
+    this.addEvents();
+  }
+
   initializeState() {
     this.state = [];
-    let columnNumber = 0;
 
     for (let i = 0; i < this.N; i++) {
       const min = i * this.columnLength + 1,
@@ -102,9 +148,9 @@ class Card {
   }
 
   initializeColumnState(min, max) {
-    const columnState = createNumbersArray(min, max);
+    const columnState = _Array.createNumbersArray(min, max);
 
-    shuffleArray(columnState);
+    _Array.shuffleArray(columnState);
     columnState.splice(this.N);
 
     return columnState;
@@ -121,13 +167,25 @@ class Card {
     const column = document.createElement('div');
     column.classList.add('column');
 
-    this.state[columnNumber].forEach(number => {
-      const cell = new Cell(number);
-      this.cellsList.push(cell);
-      column.append( cell.createCell() );
+    this.state[columnNumber].forEach( number => {
+      const cell = new Cell(number, this);
+      this.verticalCellsList[columnNumber].push(cell);
+      column.append( cell.createDOMCell() );
     });
 
     return column;
+  }
+
+  reverseCellsList(cellsList) {
+    const reverseCellsList = _Array.create2DArray(this.N);
+
+    for (let i = 0; i < this.N; i++) {
+      for (let j = 0; j < this.N; j++) {
+        reverseCellsList[i].push(cellsList[j][i]);
+      }
+    }
+
+    return reverseCellsList;
   }
 
   createTrashCover() {
@@ -144,7 +202,7 @@ class Card {
 
   addEvents() {
     const img = this.cover.querySelector('img');
-    img.addEventListener('click', this.removeCard.bind(this));
+    img.addEventListener('click', this.removeDOMCard.bind(this));
   }
 
   static incrementId() {
@@ -158,22 +216,147 @@ class Card {
 
 Card._id = 0;
 
-class Game {
-  constructor() {
-    this.cardsList = new Set();
-    this.addEvents();
+/**********************************************************************/
+
+class Basket {
+  constructor(callback) {
+    Object.setPrototypeOf(Basket.prototype, gameSettings);
+
+    this.callback = callback;
+    this.DOMqueue = [];
+    this.numbersQueue = [];
   }
 
-  addCard() {
-    this.checkCard();
+  createDOMBasket() {
+    this.basketDOM = document.createElement('div');
+    this.basketDOM.id = 'basket';
 
-    if (this.cardsList.size < 3) {
-      this.cardsList.add( new Card(settings) );
+    return this.basketDOM;
+  }
+
+  removeDOMBasket() {
+    clearInterval(this.timerId);
+    this.basketDOM.remove();
+  }
+
+  startRolling() {
+    this.generateLuckyNumbers();
+
+    this.tick();
+    this.timerId = setInterval(this.tick.bind(this), 3500);
+  }
+
+  generateLuckyNumbers() {
+    const maxNumber = this.totalNumbers * 2 / 3 ^ 0;
+
+    this.luckyNumbers = _Array.createNumbersArray(1, this.totalNumbers);
+    _Array.shuffleArray(this.luckyNumbers);
+    this.luckyNumbers.splice(maxNumber);
+  }
+
+  tick() {
+    this.removeOldBall();
+    this.addBall( this.createDOMBall() );
+    this.animateBalls();
+
+    this.callback(this.numbersQueue);
+
+    this.stopTick();
+  }
+
+  removeOldBall() {
+    if (this.DOMqueue.length === 2) {
+      const oldBall = this.DOMqueue.pop();
+      oldBall.remove();
+
+      this.numbersQueue.pop();
     }
   }
 
-  showCard() {
-    this.addCard();
+  createDOMBall() {
+    const ball = document.createElement('div');
+    ball.classList.add('ball');
+    ball.textContent = this.nextNumber();
+
+    return ball;
+  }
+
+  nextNumber() {
+    let luckyNumber;
+    _Array.shuffleArray(this.luckyNumbers, 3);
+
+    luckyNumber = this.luckyNumbers.pop();
+    this.numbersQueue.unshift(luckyNumber);
+
+    return luckyNumber;
+  }
+
+  addBall(ball) {
+    this.basketDOM.prepend(ball);
+    this.DOMqueue.unshift(ball);
+  }
+
+  animateBalls() {
+    const [newBall, oldBall] = this.DOMqueue;
+
+    if (oldBall) {
+      oldBall.classList.remove('show');
+      oldBall.classList.add('hide');
+    }
+
+    setTimeout(() => {
+      newBall.classList.add('show');
+    }, 50);
+  }
+
+  stopTick() {
+    if (this.luckyNumbers.length === 0) {
+      clearInterval(this.timerId);
+
+      setTimeout(() => {
+        this.DOMqueue[0].classList.add('hide');
+        this.callback([this.numbersQueue[0]]);
+        this.DOMqueue.pop().remove();
+
+        setTimeout(() => {
+          this.DOMqueue.pop().remove();
+          this.callback([], true);
+          this.removeDOMBasket();
+        }, 5000);
+      }, 3500);
+    }
+  }
+}
+
+/**********************************************************************/
+
+class Game {
+  constructor() {
+    Object.setPrototypeOf(Game.prototype, gameSettings);
+    this.board = document.getElementById('board');
+    this.cardsList = new Set();
+
+    this.addDOMCard();
+    this.addEvents();
+  }
+
+  addDOMCard() {
+    this.checkCard();
+
+    if (this.cardsList.size < 3) {
+      const card = new Card(),
+            DOMCard = card.createDOMCard();
+
+      this.board.append(DOMCard);
+      this.cardsList.add(card);
+    }
+  }
+
+  addEvents() {
+    const addCardButton = document.getElementById('addCard');
+    const startGame = document.getElementById('startGame');
+    addCardButton.addEventListener('click', this.addDOMCard.bind(this));
+    startGame.addEventListener('click', this.startGame.bind(this));
   }
 
   startGame() {
@@ -186,7 +369,33 @@ class Game {
     this.removeTrashCovers();
     this.removeButtons();
 
-    this.basket = new Basket(settings);
+    this.basket = new Basket(this.callback.bind(this));
+
+    const basketDOM = this.basket.createDOMBasket();
+    this.board.after(basketDOM);
+
+    this.basket.startRolling();
+  }
+
+  checkCard() {
+    for(const card of this.cardsList) {
+      if (card.isDeleted) {
+        this.cardsList.delete(card);
+      }
+    }
+  }
+
+  callback(arr, gameOver) {
+    for (const card of this.cardsList) {
+      card.numbersQueue = arr;
+    }
+
+    if (this.checkWin()) {
+      this.basket.removeDOMBasket();
+      setTimeout(alert, 0, 'Congratulations!');
+    } else if (gameOver) {
+      setTimeout(alert, 0, 'You lose, try again!');
+    }
   }
 
   removeTrashCovers() {
@@ -198,110 +407,55 @@ class Game {
 
   removeButtons() {
     const nav = document.querySelector('nav');
-
     nav.remove();
   }
 
-  checkCard() {
+  checkWin() {
+    let win = false;
+
     for(const card of this.cardsList) {
-      if (card.isDeleted) {
-        this.cardsList.delete(card);
+      const verticalLines = this.checkWinningLines(card.verticalCellsList),
+            horizontalLines = this.checkWinningLines(card.horizontalCellsList),
+            diagonalLines = this.checkDiagonalLines(card.horizontalCellsList),
+            corners = this.ckeckCorners(card.horizontalCellsList);
+
+      win = win || verticalLines || horizontalLines || diagonalLines || corners;
+    }
+
+    return win;
+  }
+
+  checkWinningLines(cellsList) {
+    return cellsList.some(line => {
+      return line.every(cell => {
+        return cell.flipped;
+      });
+    });
+  }
+
+  checkDiagonalLines(cellsList) {
+    let result1 = true,
+        result2 = true;
+
+    for (let i = 0, j = this.N - 1; i < this.N; i++, j--) {
+      result1 = result1 && cellsList[i][i].flipped;
+      result2 = result2 && cellsList[i][j].flipped;
+    }
+
+    return result1 || result2;
+  }
+
+  ckeckCorners(cellsList) {
+    let result = true;
+
+    for (let i = 0; i < this.N; i += this.N - 1) {
+      for (let j = 0; j < this.N; j += this.N - 1) {
+        result = result && cellsList[i][j].flipped;
       }
     }
-  }
 
-  addEvents() {
-    const addCardButton = document.getElementById('addCard');
-    const startGame = document.getElementById('startGame');
-    addCardButton.addEventListener('click', this.addCard.bind(this));
-    startGame.addEventListener('click', this.startGame.bind(this));
-  }
-}
-
-function shuffleArray(arr, times=10) {
-  while(times-- > 0) {
-    arr.sort(() => Math.random() - 0.5);
-  }
-}
-
-function createNumbersArray(min, max) {
-  const arr = [];
-
-  for(let i = min; i <= max; i++) {
-    arr.push(i);
-  }
-
-  return arr;
-}
-
-class Basket {
-  constructor(options) {
-    Object.setPrototypeOf(Basket.prototype, options);
-    this.queue = [];
-
-    this.addBasket();
-    this.generateLuckyNumbers();
-
-    this.tick();
-    setInterval(this.tick.bind(this), 3000);
-  }
-
-  addBasket() {
-    this.basket = document.createElement('div');
-    this.basket.id = 'basket';
-
-    this.board.after(this.basket);
-  }
-
-  generateLuckyNumbers() {
-    this.luckyNumbers = createNumbersArray(1, this.totalNumbers);
-    shuffleArray(this.luckyNumbers);
-  }
-
-  tick() {
-    this.removeOldBall();
-    this.addBall( this.createBall() );
-    this.animateBalls();
-  }
-
-  removeOldBall() {
-    if (this.queue.length === 2) {
-      const oldBall = this.queue.pop();
-      oldBall.remove();
-    }
-  }
-
-  createBall() {
-    const ball = document.createElement('div');
-    ball.classList.add('ball');
-    ball.textContent = this.nextNumber();
-
-    return ball;
-  }
-
-  nextNumber() {
-    shuffleArray(this.luckyNumbers, 3);
-    return this.luckyNumbers.pop();
-  }
-
-  addBall(ball) {
-    this.basket.prepend(ball);
-    this.queue.unshift(ball);
-  }
-
-  animateBalls() {
-    const [newBall, oldBall] = this.queue;
-
-    if (oldBall) {
-      oldBall.classList.remove('show');
-      oldBall.classList.add('hide');
-    }
-
-    setTimeout(() => {
-      newBall.classList.add('show');
-    }, 50);
+    return result;
   }
 }
 
 const game = new Game();
-game.showCard();
