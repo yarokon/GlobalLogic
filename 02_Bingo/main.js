@@ -2,7 +2,7 @@
 
 const gameSettings = Object.assign( Object.create(null), {
   N: 5,
-  dispCoeff: 2,
+  dispCoeff: 4,
   get totalCells() {
     return this.N ** 2;
   },
