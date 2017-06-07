@@ -1,8 +1,8 @@
 'use strict';
 
 const gameSettings = Object.assign( Object.create(null), {
-  N: 5,
-  dispCoeff: 4,
+  N: 2,
+  dispCoeff: 1,
   get totalCells() {
     return this.N ** 2;
   },
@@ -57,32 +57,18 @@ class Cell {
   }
 
   createDOMCell() {
-    const container = this.createFlipContainer();
+    const template = document.getElementById('cell');
 
-    this.cell = document.createElement('div');
-    this.cell.classList.add('cell');
+    this.cell = template.content.querySelector('.cell').cloneNode(true);
+
     this.cell.dataset.x = this.position.x;
     this.cell.dataset.y = this.position.y;
-    this.cell.append(container);
+
+    Array.from( this.cell.querySelectorAll('figure') ).forEach(el => {
+      el.textContent = this.number;
+    });
 
     return this.cell;
-  }
-
-  createFlipContainer() {
-    const container = document.createElement('div'),
-          front = document.createElement('figure'),
-          back = document.createElement('figure');
-
-    front.classList.add('front');
-    front.textContent = this.number;
-
-    back.classList.add('back');
-    back.textContent = this.number;
-
-    container.classList.add('container');
-    container.append(front, back);
-
-    return container;
   }
 
   flip() {
@@ -348,23 +334,14 @@ class DialogBox {
     this.message = message;
   }
 
+
   createDialogBox() {
-    const text = document.createElement('span');
-    text.textContent = this.message;
+    const template = document.getElementById('dialogBox');
 
-    const button1 = this.createButton('Play again?'),
-          button2 = this.createButton('Show result');
+    this.cover = template.content.querySelector('.dialogCover').cloneNode(true);
+    this.cover.querySelector('span').textContent = this.message;
 
-    const nav = document.createElement('nav');
-    nav.append(button1, button2);
-
-    const box = document.createElement('dialog');
-    box.open = true;
-    box.append(text, nav);
-
-    this.cover = document.createElement('div');
-    this.cover.classList.add('dialogCover');
-    this.cover.append(box);
+    const [button1, button2] = Array.from( this.cover.querySelectorAll('.dialogButton') );
 
     document.body.classList.add('blur');
     document.body.style.overflow = 'hidden';
