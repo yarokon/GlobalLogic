@@ -288,8 +288,11 @@ class Basket {
 
   createDOMBall() {
     const ball = document.createElement('div');
+    const ballNumber = document.createElement('div');
     ball.classList.add('ball');
-    ball.textContent = this.nextNumber();
+    ballNumber.classList.add('number');
+    ballNumber.textContent = this.nextNumber();
+    ball.appendChild(ballNumber);
 
     return ball;
   }

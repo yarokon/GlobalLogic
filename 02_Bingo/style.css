@@ -138,16 +138,26 @@ nav > button {
   left: -52px;
   transition: all 2s ease-in-out;
   user-select: none;
-  box-shadow: inset -5px -5px 10px rgba(0,0,0,.2);
+  box-shadow: inset -5px -5px 10px rgba(0,0,0,.3);
 }
 
 #basket > .ball.show {
   left: calc(50% - 26px);
-  transform: rotateZ( 360deg );
 }
 
 #basket > .ball.hide {
   left: 100%;
+}
+
+#basket > .ball > .number {
+  transition: all 2s ease-in-out;
+}
+
+#basket > .ball.show > .number {
+  transform: rotateZ( 360deg );
+}
+
+#basket > .ball.hide > .number {
   transform: rotateZ( calc(360deg * 2) );
 }
 
