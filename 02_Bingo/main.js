@@ -14,6 +14,10 @@ const gameSettings = Object.assign( Object.create(null), {
   }
 });
 
+Object.freeze(gameSettings);
+
+/**********************************************************************/
+
 class _Array {
   static create2DArray(max) {
     const arr = [];
@@ -84,9 +88,7 @@ class Cell {
     const container = this.cell.querySelector('.container');
 
     container.addEventListener('click', () => {
-      const match = this.parent.numbersQueue.find(value => {
-        return value === this.number;
-      });
+      const match = this.parent.numbersQueue.includes(this.number);
 
       if (match && !this.flipped) {
         container.classList.add('flipped');
@@ -105,7 +107,6 @@ class Cell {
 class Card {
   constructor() {
     Object.setPrototypeOf(Card.prototype, gameSettings);
-    
     this.verticalCellsList = _Array.create2DArray(this.N);
   }
 
@@ -222,6 +223,7 @@ class Basket {
   constructor(callback) {
     Object.setPrototypeOf(Basket.prototype, gameSettings);
 
+    this.timeout = 3500;
     this.callback = callback;
     this.DOMqueue = [];
     this.numbersQueue = [];
@@ -243,7 +245,7 @@ class Basket {
     this.generateLuckyNumbers();
 
     this.tick();
-    this.timerId = setInterval(this.tick.bind(this), 3500);
+    this.timerId = setInterval(this.tick.bind(this), this.timeout);
   }
 
   generateLuckyNumbers() {
@@ -322,9 +324,63 @@ class Basket {
           this.DOMqueue.pop().remove();
           this.callback([], true);
           this.removeDOMBasket();
-        }, 5000);
-      }, 3500);
+        }, this.timeout);
+      }, this.timeout);
     }
+  }
+}
+
+/**********************************************************************/
+
+class DialogBox {
+  constructor(message) {
+    this.message = message;
+  }
+
+  createDialogBox() {
+    const text = document.createElement('span');
+    text.textContent = this.message;
+
+    const button1 = this.createButton('Play again?'),
+          button2 = this.createButton('Show result');
+
+    const nav = document.createElement('nav');
+    nav.append(button1, button2);
+
+    const box = document.createElement('dialog');
+    box.open = true;
+    box.append(text, nav);
+
+    this.cover = document.createElement('div');
+    this.cover.classList.add('dialogCover');
+    this.cover.append(box);
+
+    document.body.classList.add('blur');
+    document.body.style.overflow = 'hidden';
+
+    button1.addEventListener('click', () => {
+      location.reload();
+    });
+
+    button2.addEventListener('click', () => {
+      this.hideDialogBox();
+    });
+
+    return this.cover;
+  }
+
+  createButton(text) {
+    const button = document.createElement('div');
+    button.classList.add('dialogButton');
+    button.textContent = text;
+
+    return button;
+  }
+
+  hideDialogBox() {
+    this.cover.remove();
+    document.body.classList.remove('blur');
+    document.body.style.overflow = '';
   }
 }
 
@@ -333,6 +389,7 @@ class Basket {
 class Game {
   constructor() {
     Object.setPrototypeOf(Game.prototype, gameSettings);
+    this.won = false;
     this.board = document.getElementById('board');
     this.cardsList = new Set();
 
@@ -390,11 +447,18 @@ class Game {
       card.numbersQueue = arr;
     }
 
+    if (this.won){
+      return;
+    }
+
     if (this.checkWin()) {
+      const dialogBox = new DialogBox('Congratulations!');
+      document.body.append( dialogBox.createDialogBox() );
+      this.won = true;
       this.basket.removeDOMBasket();
-      setTimeout(alert, 0, 'Congratulations!');
     } else if (gameOver) {
-      setTimeout(alert, 0, 'You lose, try again!');
+      const dialogBox = new DialogBox('You lose, try again!');
+      document.body.append( dialogBox.createDialogBox() );
     }
   }
 

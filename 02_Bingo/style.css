@@ -1,5 +1,6 @@
 body {
   font-family: Verdana, Geneva, sans-serif;
+  margin: 0;
 }
 
 header {
@@ -7,6 +8,10 @@ header {
   text-align: center;
   text-transform: uppercase;
   text-shadow:  0 10px 10px rgba(0,0,0,0.2);
+}
+
+h1 {
+  margin-bottom: 0.5em;
 }
 
 main {
@@ -96,14 +101,14 @@ main {
   position: absolute;
 }
 
-nav {
+body > nav {
   width: 290px;
   display: flex;
   flex-direction: column;
   margin: auto;
 }
 
-button {
+nav > button {
   margin: 10px;
   padding: 10px;
 }
@@ -144,4 +149,72 @@ button {
 #basket > .ball.hide {
   left: 100%;
   transform: rotateZ( calc(360deg * 2) );
+}
+
+.blur > :not(.dialogCover) {
+  filter: blur(2px);
+}
+
+.dialogCover {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.3);
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+dialog {
+  width: 350px;
+  height: 150px;
+  top: 100px;
+  margin: auto;
+  text-align: center;
+  font-weight: bold;
+  z-index: 1;
+  border-radius: 10px;
+  user-select: none;
+  background: linear-gradient(to bottom right, #FF9800 0%, #FFC107 50%, #FFEB3B 75%);
+  box-shadow: 0 19px 38px rgba(0,0,0,0.45),
+              0 15px 12px rgba(0,0,0,0.35);
+}
+
+@media only screen and (max-width: 768px) {
+  dialog {
+    width: 290px;
+  }
+}
+
+dialog > span {
+  line-height: 80px;
+  font-size: 1.5em;
+}
+
+dialog .dialogButton {
+  width: 120px;
+  height: 30px;
+  padding: 5px 10px;
+  line-height: 30px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.4s;
+  box-shadow: 0px 3px 20px rgba(0, 0, 0, 0.25),
+              0px 2px 0 rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.6),
+              inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+dialog .dialogButton:active {
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4),
+        inset 0 0 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+dialog > nav {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 20px;
 }
