@@ -2,7 +2,7 @@
 
 const gameSettings = Object.assign( Object.create(null), {
   N: 5,
-  dispCoeff: 4,
+  dispCoeff: 2,
   get totalCells() {
     return this.N ** 2;
   },
@@ -49,7 +49,8 @@ class _Array {
 /**********************************************************************/
 
 class Cell {
-  constructor(number, parent) {
+  constructor(number, parent, position) {
+    this.position = position;
     this.number = number;
     this.parent = parent;
     this.flipped = false;
@@ -60,9 +61,9 @@ class Cell {
 
     this.cell = document.createElement('div');
     this.cell.classList.add('cell');
+    this.cell.dataset.x = this.position.x;
+    this.cell.dataset.y = this.position.y;
     this.cell.append(container);
-
-    this.addEvents();
 
     return this.cell;
   }
@@ -84,21 +85,18 @@ class Cell {
     return container;
   }
 
-  addEvents() {
+  flip() {
     const container = this.cell.querySelector('.container');
+    const match = this.parent.numbersQueue.includes(this.number);
 
-    container.addEventListener('click', () => {
-      const match = this.parent.numbersQueue.includes(this.number);
+    if (match && !this.flipped) {
+      container.classList.add('flipped');
+      this.flipped = true;
+    }
 
-      if (match && !this.flipped) {
-        container.classList.add('flipped');
-        this.flipped = true;
-      }
-
-      // unlock the cell's turning over
-      // container.classList.toggle('flipped');
-      // this.flipped = container.classList.contains('flipped');
-    });
+    // unlock the cell's turning over
+    // container.classList.toggle('flipped');
+    // this.flipped = container.classList.contains('flipped');
   }
 }
 
@@ -168,8 +166,8 @@ class Card {
     const column = document.createElement('div');
     column.classList.add('column');
 
-    this.state[columnNumber].forEach( number => {
-      const cell = new Cell(number, this);
+    this.state[columnNumber].forEach( (number, i) => {
+      const cell = new Cell(number, this, {x: columnNumber, y: i});
       this.verticalCellsList[columnNumber].push(cell);
       column.append( cell.createDOMCell() );
     });
@@ -201,9 +199,22 @@ class Card {
     this.card.append(this.cover);
   }
 
+
   addEvents() {
     const img = this.cover.querySelector('img');
     img.addEventListener('click', this.removeDOMCard.bind(this));
+
+    this.card.addEventListener('click', (e) => {
+      const target = e.target;
+
+      if (e.target.tagName === 'FIGURE') {
+        const cell = target.closest('.cell');
+        const x = cell.dataset.x,
+              y = cell.dataset.y;
+
+        this.verticalCellsList[x][y].flip();
+      }
+    });
   }
 
   static incrementId() {
