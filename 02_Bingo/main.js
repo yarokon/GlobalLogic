@@ -1,8 +1,8 @@
 'use strict';
 
 const gameSettings = Object.assign( Object.create(null), {
-  N: 2,
-  dispCoeff: 1,
+  N: 5,
+  dispCoeff: 4,
   get totalCells() {
     return this.N ** 2;
   },
@@ -185,20 +185,19 @@ class Card {
     this.card.append(this.cover);
   }
 
-
   addEvents() {
-    const img = this.cover.querySelector('img');
-    img.addEventListener('click', this.removeDOMCard.bind(this));
-
     this.card.addEventListener('click', (e) => {
       const target = e.target;
 
-      if (e.target.tagName === 'FIGURE') {
-        const cell = target.closest('.cell');
-        const x = cell.dataset.x,
-              y = cell.dataset.y;
-
-        this.verticalCellsList[x][y].flip();
+      switch (target.tagName) {
+        case 'FIGURE':
+          const cell = target.closest('.cell');
+          const x = cell.dataset.x,
+                y = cell.dataset.y;
+          this.verticalCellsList[x][y].flip();
+          break;
+        case 'IMG':
+          this.removeDOMCard();
       }
     });
   }
@@ -273,12 +272,10 @@ class Basket {
   }
 
   createDOMBall() {
-    const ball = document.createElement('div');
-    const ballNumber = document.createElement('div');
-    ball.classList.add('ball');
-    ballNumber.classList.add('number');
-    ballNumber.textContent = this.nextNumber();
-    ball.appendChild(ballNumber);
+    const template = document.getElementById('ball');
+
+    const ball = template.content.querySelector('.ball').cloneNode(true);
+    ball.querySelector('.number').textContent = this.nextNumber();
 
     return ball;
   }
@@ -337,35 +334,41 @@ class DialogBox {
     this.message = message;
   }
 
-
   createDialogBox() {
     const template = document.getElementById('dialogBox');
 
     this.cover = template.content.querySelector('.dialogCover').cloneNode(true);
     this.cover.querySelector('span').textContent = this.message;
 
-    const [button1, button2] = Array.from( this.cover.querySelectorAll('.dialogButton') );
-
     document.body.classList.add('blur');
     document.body.style.overflow = 'hidden';
 
-    button1.addEventListener('click', () => {
-      location.reload();
-    });
-
-    button2.addEventListener('click', () => {
-      this.hideDialogBox();
-    });
+    this.addEvents();
 
     return this.cover;
   }
 
-  createButton(text) {
-    const button = document.createElement('div');
-    button.classList.add('dialogButton');
-    button.textContent = text;
+  addEvents() {
+    const nav = this.cover.querySelector('nav');
 
-    return button;
+    nav.addEventListener('click', (e) => {
+      const target = e.target;
+
+      if (target.className === 'dialogButton') {
+        const [button1, button2] = Array.from( nav.querySelectorAll('.dialogButton') );
+
+        switch (target) {
+          case button1:
+            location.reload();
+            break;
+          case button2:
+            this.hideDialogBox();
+            break;
+          default:
+            console.warn('missing event handler');
+        }
+      }
+    });
   }
 
   hideDialogBox() {
@@ -401,10 +404,26 @@ class Game {
   }
 
   addEvents() {
-    const addCardButton = document.getElementById('addCard');
-    const startGame = document.getElementById('startGame');
-    addCardButton.addEventListener('click', this.addDOMCard.bind(this));
-    startGame.addEventListener('click', this.startGame.bind(this));
+    const nav = document.querySelector('nav');
+
+    nav.addEventListener('click', (e) => {
+      const target = e.target;
+
+      if (target.tagName === 'BUTTON') {
+        const buttonId = target.id;
+
+        switch (buttonId) {
+          case 'addCard':
+            this.addDOMCard();
+            break;
+          case 'startGame':
+            this.startGame();
+            break;
+          default:
+            console.warn('missing event handler');
+        }
+      }
+    });
   }
 
   startGame() {
@@ -443,14 +462,22 @@ class Game {
     }
 
     if (this.checkWin()) {
-      const dialogBox = new DialogBox('Congratulations!');
-      document.body.append( dialogBox.createDialogBox() );
+      this.showDialogBox( new DialogBox('Congratulations!') );
+
       this.won = true;
       this.basket.removeDOMBasket();
     } else if (gameOver) {
-      const dialogBox = new DialogBox('You lose, try again!');
-      document.body.append( dialogBox.createDialogBox() );
+      this.showDialogBox( new DialogBox('You lose, try again!') );
     }
+  }
+
+  showDialogBox(dialogBox) {
+    const DOMdialogBox = dialogBox.createDialogBox();
+    document.body.append( DOMdialogBox );
+
+    setTimeout(() => {
+       DOMdialogBox.querySelector('dialog').classList.add('show');
+    });
   }
 
   removeTrashCovers() {

@@ -138,7 +138,7 @@ nav > button {
   left: -52px;
   transition: all 2s ease-in-out;
   user-select: none;
-  box-shadow: inset -5px -5px 10px rgba(0,0,0,.3);
+  box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
 }
 
 #basket > .ball.show {
@@ -177,16 +177,19 @@ nav > button {
 dialog {
   width: 350px;
   height: 150px;
-  top: 100px;
+  top: -150px;
   margin: auto;
   text-align: center;
   font-weight: bold;
   z-index: 1;
   border-radius: 10px;
-  user-select: none;
-  background: linear-gradient(to bottom right, #FF9800 0%, #FFC107 50%, #FFEB3B 75%);
+  transition: all 0.4s ease-in-out;
+  opacity: 0;
+  background: linear-gradient(to bottom right, #ff9800 0%, #ffc107 50%, #ffeb3b 75%);
   box-shadow: 0 19px 38px rgba(0,0,0,0.45),
               0 15px 12px rgba(0,0,0,0.35);
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 }
 
 @media only screen and (max-width: 500px) {
@@ -195,9 +198,23 @@ dialog {
   }
 }
 
+dialog.show {
+  top: 100px;
+  opacity: 1;
+}
+
 dialog > span {
   line-height: 80px;
   font-size: 1.5em;
+}
+
+dialog > nav {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 20px;
 }
 
 dialog .dialogButton {
@@ -218,13 +235,4 @@ dialog .dialogButton:active {
   box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4),
         inset 0 0 20px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(0, 0, 0, 0.1);
-}
-
-dialog > nav {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  position: absolute;
-  left: 0;
-  bottom: 20px;
 }
