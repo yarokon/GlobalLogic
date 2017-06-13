@@ -1,20 +1,29 @@
 import Day from './Day';
 
 export default class Week {
-  constructor(options) {
-    Object.assign(this, options);
+  constructor(weekArrOptions) {
+    this.weekArrOptions = weekArrOptions;
   }
 
   render() {
-    const week = document.createElement('tr');
-    const weekArr =  this.weekDays.map(dayOptions => {
-      const day = new Day(dayOptions);
+    const tr = document.createElement('tr');
 
+    this.daysArr = this.weekArrOptions.map(dayOptions => {
+      return new Day(dayOptions);
+    });
+
+    const weekArrElements = this.daysArr.map(day => {
       return day.render();
     });
 
-    week.append(...weekArr);
+    tr.append(...weekArrElements);
 
-    return week;
+    return tr;
+  }
+
+  update(weeksArrOptions) {
+    this.daysArr.forEach( (day, i) => {
+      day.update(weeksArrOptions[i]);
+    });
   }
 }
