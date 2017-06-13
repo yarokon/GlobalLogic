@@ -1,5 +1,5 @@
 export default class Weekdays {
-  constructor(isMondayFirst=true) {
+  constructor(isMondayFirst) {
     this.weekdayArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     if (!isMondayFirst) {

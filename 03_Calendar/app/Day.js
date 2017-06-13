@@ -1,23 +1,13 @@
 export default class Day {
-  constructor(dayOptions) {
-    Object.assign(this, dayOptions);
-  }
-
   render() {
-    const td = document.createElement('td');
-    td.textContent = this.dayNumber;
+    this.td = document.createElement('td');
 
-    if (this.currentMonth) {
-      td.classList.add('current-month');
-      td.dataset.day = this.data;
-    }
-
-    this.td = td;
-    return td;
+    return this.td;
   }
 
   update(dayOptions) {
     Object.assign(this, dayOptions);
+
     this.td.textContent = this.dayNumber;
 
     if (this.currentMonth) {

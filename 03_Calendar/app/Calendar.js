@@ -2,10 +2,19 @@ import Header from './Header';
 import Month from './Month';
 
 export default class Calendar {
-  constructor() {
+  constructor(isMondayFirst=true) {
+    this.isMondayFirst = isMondayFirst;
+    this.createTable();
+
     this.setCurrentDate();
     this.updateState();
-    this.createTable();
+
+    this.addEvents();
+  }
+
+  createTable() {
+    this.table = document.createElement('table');
+    this.table.id = 'calendar';
   }
 
   setCurrentDate() {
@@ -18,17 +27,12 @@ export default class Calendar {
     this.currentDay = this.markDay(time.getDate());
   }
 
-  createTable() {
-    this.calendar = document.createElement('table');
-    this.calendar.id = 'calendar';
-  }
-
   updateState() {
-    const mainDays = this.calculateMainDays(this.year , this.month);
+    const mainDays = this.calculateMainDays(this.year , this.month, this.isMondayFirst);
     this.monthsOptions = this.createMonthDays(mainDays);
   }
 
-  calculateMainDays(year, month, isMondayFirst=true) {
+  calculateMainDays(year, month, isMondayFirst) {
     const time = new Date(year, month);
     let firstDayCurrentMonth, lastDatePreviousMonth, lastDateCurrentMonth;
 
@@ -99,44 +103,40 @@ export default class Calendar {
       previousMonth,
       currentMonth,
       nextMonth
-    }
+    };
   }
 
   render(target) {
-    this.headerInst = new Header(this.year, this.month);
-    this.monthInst = new Month(this.monthsOptions);
+    this.headerInst = new Header(this.isMondayFirst);
+    this.monthInst = new Month();
 
-    this.calendar.append(this.headerInst.render(), this.monthInst.render());
+    this.table.append(this.headerInst.render(), this.monthInst.render());
+
+    this.updateElements();
 
     if (target instanceof Element) {
-      target.append(this.calendar);
+      target.append(this.table);
     }
 
-    this.checkCurrentDay();
+    return this.table;
+  }
 
-    return this.calendar;
+  updateElements() {
+    this.headerInst.update(this.year, this.month);
+    this.monthInst.update(this.monthsOptions);
+    this.checkCurrentDay();
   }
 
   update() {
-    this.headerInst.update(this.year, this.month);
-    this.monthInst.update(this.monthsOptions);
+    this.updateState();
+    this.updateElements();
   }
 
   addEvents() {
-    this.calendar.addEventListener('click', (e) => {
+    this.table.addEventListener('click', (e) => {
       const target = e.target;
 
-      if (target.classList.contains('current-month')) {
-        if (target.dataset.day === this.selectedDate) {
-          return;
-        }
-
-        const searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-        searchedElement && searchedElement.classList.remove('highlighted');
-
-        target.classList.add('highlighted');
-        this.selectedDate = this.markDay(target.textContent);
-      }
+      this.highlightDay(target);
 
       switch (target.id) {
         case 'previousMonth':
@@ -149,12 +149,25 @@ export default class Calendar {
     });
   }
 
+  highlightDay(target) {
+    if (target.classList.contains('current-month')) {
+      if (target.dataset.day === this.selectedDate) {
+        return;
+      }
+
+      this.removeHighlightedDay();
+
+      target.classList.add('highlighted');
+      this.selectedDate = this.markDay(target.textContent);
+    }
+  }
+
   markDay(date) {
     return `${this.year}-${this.month}-${date}`;
   }
 
   checkCurrentDay() {
-    const currentDay = this.calendar.querySelector(`[data-day='${this.currentDay}']`);
+    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
 
     if (currentDay) {
       currentDay.classList.add('today');
@@ -165,7 +178,6 @@ export default class Calendar {
   }
 
   getPreviousMonth() {
-    let searchedElement;
     this.month--;
 
     if (this.month === -1) {
@@ -173,20 +185,12 @@ export default class Calendar {
       this.year--;
     }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.remove('highlighted');
-
-    this.updateState();
+    this.removeHighlightedDay();
     this.update();
-
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.add('highlighted');
-
-    this.checkCurrentDay();
+    this.addHighlightedDay();
   }
 
   getNextMonth() {
-    let searchedElement;
     this.month++;
 
     if (this.month === 12) {
@@ -194,15 +198,18 @@ export default class Calendar {
       this.year++;
     }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.remove('highlighted');
-
-    this.updateState();
+    this.removeHighlightedDay();
     this.update();
+    this.addHighlightedDay();
+  }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.add('highlighted');
+  removeHighlightedDay() {
+    const previousHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
+    previousHighlightedDay && previousHighlightedDay.classList.remove('highlighted');
+  }
 
-    this.checkCurrentDay();
+  addHighlightedDay() {
+    const newHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
+    newHighlightedDay && newHighlightedDay.classList.add('highlighted');
   }
 }

@@ -1,17 +1,15 @@
 import Weekdays from './Weekdays';
 
 export default class Header {
-  constructor(year, month) {
-    this.stringDate = this.formatDate(year, month);
+  constructor(isMondayFirst) {
+    this.isMondayFirst = isMondayFirst;
   }
 
   createHeader() {
     const tr = document.createElement('tr');
 
-    const th = document.createElement('th');
-    th.setAttribute('colspan', 5);
-    th.textContent = this.stringDate;
-    this.th = th;
+    this.th = document.createElement('th');
+    this.th.setAttribute('colspan', 5);
 
     const leftArrow = document.createElement('th');
     leftArrow.id = 'previousMonth';
@@ -19,7 +17,7 @@ export default class Header {
     const rightArrow = document.createElement('th');
     rightArrow.id = 'nextMonth';
 
-    tr.append(leftArrow, th, rightArrow);
+    tr.append(leftArrow, this.th, rightArrow);
 
     return tr;
   }
@@ -36,7 +34,7 @@ export default class Header {
 
   render() {
     const thead = document.createElement('thead');
-    const weekdays = new Weekdays();
+    const weekdays = new Weekdays(this.isMondayFirst);
 
     thead.append(this.createHeader(), weekdays.render());
 

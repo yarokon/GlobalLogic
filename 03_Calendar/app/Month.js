@@ -1,15 +1,11 @@
 import Week from './Week';
 
 export default class Month {
-  constructor(monthsOptions) {
-    this.weeksArrOptions = this.createWeeksArrOptions(monthsOptions);
-  }
-
   createWeeksArrOptions(monthsOptions) {
     const weeksArrOptions = [];
     const allDaysOptions = [].concat( ...Object.values(monthsOptions) );
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 1; i <= 6; i++) {
       weeksArrOptions.push( allDaysOptions.splice(0, 7) );
     }
 
@@ -19,9 +15,11 @@ export default class Month {
   render() {
     const tbody = document.createElement('tbody');
 
-    this.weeksArr = this.weeksArrOptions.map(weekArrOptions => {
-      return new Week(weekArrOptions);
-    });
+    this.weeksArr = [];
+
+    for (let i = 1; i <= 6; i++) {
+      this.weeksArr.push( new Week() );
+    }
 
     this.monthArrElements = this.weeksArr.map(week => {
       return week.render();

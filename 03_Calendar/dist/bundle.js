@@ -77,10 +77,19 @@
 
 
 class Calendar {
-  constructor() {
+  constructor(isMondayFirst=true) {
+    this.isMondayFirst = isMondayFirst;
+    this.createTable();
+
     this.setCurrentDate();
     this.updateState();
-    this.createTable();
+
+    this.addEvents();
+  }
+
+  createTable() {
+    this.table = document.createElement('table');
+    this.table.id = 'calendar';
   }
 
   setCurrentDate() {
@@ -93,17 +102,12 @@ class Calendar {
     this.currentDay = this.markDay(time.getDate());
   }
 
-  createTable() {
-    this.calendar = document.createElement('table');
-    this.calendar.id = 'calendar';
-  }
-
   updateState() {
-    const mainDays = this.calculateMainDays(this.year , this.month);
+    const mainDays = this.calculateMainDays(this.year , this.month, this.isMondayFirst);
     this.monthsOptions = this.createMonthDays(mainDays);
   }
 
-  calculateMainDays(year, month, isMondayFirst=true) {
+  calculateMainDays(year, month, isMondayFirst) {
     const time = new Date(year, month);
     let firstDayCurrentMonth, lastDatePreviousMonth, lastDateCurrentMonth;
 
@@ -174,44 +178,40 @@ class Calendar {
       previousMonth,
       currentMonth,
       nextMonth
-    }
+    };
   }
 
   render(target) {
-    this.headerInst = new __WEBPACK_IMPORTED_MODULE_0__Header__["a" /* default */](this.year, this.month);
-    this.monthInst = new __WEBPACK_IMPORTED_MODULE_1__Month__["a" /* default */](this.monthsOptions);
+    this.headerInst = new __WEBPACK_IMPORTED_MODULE_0__Header__["a" /* default */](this.isMondayFirst);
+    this.monthInst = new __WEBPACK_IMPORTED_MODULE_1__Month__["a" /* default */]();
 
-    this.calendar.append(this.headerInst.render(), this.monthInst.render());
+    this.table.append(this.headerInst.render(), this.monthInst.render());
+
+    this.updateElements();
 
     if (target instanceof Element) {
-      target.append(this.calendar);
+      target.append(this.table);
     }
 
-    this.checkCurrentDay();
+    return this.table;
+  }
 
-    return this.calendar;
+  updateElements() {
+    this.headerInst.update(this.year, this.month);
+    this.monthInst.update(this.monthsOptions);
+    this.checkCurrentDay();
   }
 
   update() {
-    this.headerInst.update(this.year, this.month);
-    this.monthInst.update(this.monthsOptions);
+    this.updateState();
+    this.updateElements();
   }
 
   addEvents() {
-    this.calendar.addEventListener('click', (e) => {
+    this.table.addEventListener('click', (e) => {
       const target = e.target;
 
-      if (target.classList.contains('current-month')) {
-        if (target.dataset.day === this.selectedDate) {
-          return;
-        }
-
-        const searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-        searchedElement && searchedElement.classList.remove('highlighted');
-
-        target.classList.add('highlighted');
-        this.selectedDate = this.markDay(target.textContent);
-      }
+      this.highlightDay(target);
 
       switch (target.id) {
         case 'previousMonth':
@@ -224,12 +224,25 @@ class Calendar {
     });
   }
 
+  highlightDay(target) {
+    if (target.classList.contains('current-month')) {
+      if (target.dataset.day === this.selectedDate) {
+        return;
+      }
+
+      this.removeHighlightedDay();
+
+      target.classList.add('highlighted');
+      this.selectedDate = this.markDay(target.textContent);
+    }
+  }
+
   markDay(date) {
     return `${this.year}-${this.month}-${date}`;
   }
 
   checkCurrentDay() {
-    const currentDay = this.calendar.querySelector(`[data-day='${this.currentDay}']`);
+    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
 
     if (currentDay) {
       currentDay.classList.add('today');
@@ -240,7 +253,6 @@ class Calendar {
   }
 
   getPreviousMonth() {
-    let searchedElement;
     this.month--;
 
     if (this.month === -1) {
@@ -248,20 +260,12 @@ class Calendar {
       this.year--;
     }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.remove('highlighted');
-
-    this.updateState();
+    this.removeHighlightedDay();
     this.update();
-
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.add('highlighted');
-
-    this.checkCurrentDay();
+    this.addHighlightedDay();
   }
 
   getNextMonth() {
-    let searchedElement;
     this.month++;
 
     if (this.month === 12) {
@@ -269,16 +273,19 @@ class Calendar {
       this.year++;
     }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.remove('highlighted');
-
-    this.updateState();
+    this.removeHighlightedDay();
     this.update();
+    this.addHighlightedDay();
+  }
 
-    searchedElement = this.calendar.querySelector(`[data-day='${this.selectedDate}']`);
-    searchedElement && searchedElement.classList.add('highlighted');
+  removeHighlightedDay() {
+    const previousHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
+    previousHighlightedDay && previousHighlightedDay.classList.remove('highlighted');
+  }
 
-    this.checkCurrentDay();
+  addHighlightedDay() {
+    const newHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
+    newHighlightedDay && newHighlightedDay.classList.add('highlighted');
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Calendar;
@@ -290,25 +297,15 @@ class Calendar {
 
 "use strict";
 class Day {
-  constructor(dayOptions) {
-    Object.assign(this, dayOptions);
-  }
-
   render() {
-    const td = document.createElement('td');
-    td.textContent = this.dayNumber;
+    this.td = document.createElement('td');
 
-    if (this.currentMonth) {
-      td.classList.add('current-month');
-      td.dataset.day = this.data;
-    }
-
-    this.td = td;
-    return td;
+    return this.td;
   }
 
   update(dayOptions) {
     Object.assign(this, dayOptions);
+
     this.td.textContent = this.dayNumber;
 
     if (this.currentMonth) {
@@ -332,17 +329,15 @@ class Day {
 
 
 class Header {
-  constructor(year, month) {
-    this.stringDate = this.formatDate(year, month);
+  constructor(isMondayFirst) {
+    this.isMondayFirst = isMondayFirst;
   }
 
   createHeader() {
     const tr = document.createElement('tr');
 
-    const th = document.createElement('th');
-    th.setAttribute('colspan', 5);
-    th.textContent = this.stringDate;
-    this.th = th;
+    this.th = document.createElement('th');
+    this.th.setAttribute('colspan', 5);
 
     const leftArrow = document.createElement('th');
     leftArrow.id = 'previousMonth';
@@ -350,7 +345,7 @@ class Header {
     const rightArrow = document.createElement('th');
     rightArrow.id = 'nextMonth';
 
-    tr.append(leftArrow, th, rightArrow);
+    tr.append(leftArrow, this.th, rightArrow);
 
     return tr;
   }
@@ -367,7 +362,7 @@ class Header {
 
   render() {
     const thead = document.createElement('thead');
-    const weekdays = new __WEBPACK_IMPORTED_MODULE_0__Weekdays__["a" /* default */]();
+    const weekdays = new __WEBPACK_IMPORTED_MODULE_0__Weekdays__["a" /* default */](this.isMondayFirst);
 
     thead.append(this.createHeader(), weekdays.render());
 
@@ -390,15 +385,11 @@ class Header {
 
 
 class Month {
-  constructor(monthsOptions) {
-    this.weeksArrOptions = this.createWeeksArrOptions(monthsOptions);
-  }
-
   createWeeksArrOptions(monthsOptions) {
     const weeksArrOptions = [];
     const allDaysOptions = [].concat( ...Object.values(monthsOptions) );
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 1; i <= 6; i++) {
       weeksArrOptions.push( allDaysOptions.splice(0, 7) );
     }
 
@@ -408,9 +399,11 @@ class Month {
   render() {
     const tbody = document.createElement('tbody');
 
-    this.weeksArr = this.weeksArrOptions.map(weekArrOptions => {
-      return new __WEBPACK_IMPORTED_MODULE_0__Week__["a" /* default */](weekArrOptions);
-    });
+    this.weeksArr = [];
+
+    for (let i = 1; i <= 6; i++) {
+      this.weeksArr.push( new __WEBPACK_IMPORTED_MODULE_0__Week__["a" /* default */]() );
+    }
 
     this.monthArrElements = this.weeksArr.map(week => {
       return week.render();
@@ -441,16 +434,14 @@ class Month {
 
 
 class Week {
-  constructor(weekArrOptions) {
-    this.weekArrOptions = weekArrOptions;
-  }
-
   render() {
     const tr = document.createElement('tr');
 
-    this.daysArr = this.weekArrOptions.map(dayOptions => {
-      return new __WEBPACK_IMPORTED_MODULE_0__Day__["a" /* default */](dayOptions);
-    });
+    this.daysArr = [];
+
+    for (let i = 1; i <= 7; i++) {
+      this.daysArr.push( new __WEBPACK_IMPORTED_MODULE_0__Day__["a" /* default */]() );
+    }
 
     const weekArrElements = this.daysArr.map(day => {
       return day.render();
@@ -476,7 +467,7 @@ class Week {
 
 "use strict";
 class Weekdays {
-  constructor(isMondayFirst=true) {
+  constructor(isMondayFirst) {
     this.weekdayArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     if (!isMondayFirst) {
@@ -517,11 +508,6 @@ const section = document.querySelector('section');
 
 const calendar = new __WEBPACK_IMPORTED_MODULE_0__Calendar__["a" /* default */]();
 calendar.render(section);
-calendar.addEvents();
-
-document.body.onclick = (e) => {
-  // console.log(e.target);
-}
 
 /***/ })
 /******/ ]);

@@ -1,16 +1,14 @@
 import Day from './Day';
 
 export default class Week {
-  constructor(weekArrOptions) {
-    this.weekArrOptions = weekArrOptions;
-  }
-
   render() {
     const tr = document.createElement('tr');
 
-    this.daysArr = this.weekArrOptions.map(dayOptions => {
-      return new Day(dayOptions);
-    });
+    this.daysArr = [];
+
+    for (let i = 1; i <= 7; i++) {
+      this.daysArr.push( new Day() );
+    }
 
     const weekArrElements = this.daysArr.map(day => {
       return day.render();
