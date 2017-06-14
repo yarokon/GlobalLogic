@@ -151,6 +151,7 @@ nav > button {
 
 #basket > .ball > .number {
   transition: all 2s ease-in-out;
+  cursor: default;
 }
 
 #basket > .ball.show > .number {

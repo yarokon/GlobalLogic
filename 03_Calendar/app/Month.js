@@ -1,12 +1,13 @@
 import Week from './Week';
+import { WEEK_LENGTH, WEEKS_NUMBER } from './constants';
 
 export default class Month {
   createWeeksArrOptions(monthsOptions) {
     const weeksArrOptions = [];
     const allDaysOptions = [].concat( ...Object.values(monthsOptions) );
 
-    for (let i = 1; i <= 6; i++) {
-      weeksArrOptions.push( allDaysOptions.splice(0, 7) );
+    for (let i = 1; i <= WEEKS_NUMBER; i++) {
+      weeksArrOptions.push( allDaysOptions.splice(0, WEEK_LENGTH) );
     }
 
     return weeksArrOptions;
@@ -17,7 +18,7 @@ export default class Month {
 
     this.weeksArr = [];
 
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= WEEKS_NUMBER; i++) {
       this.weeksArr.push( new Week() );
     }
 

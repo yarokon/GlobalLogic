@@ -10,6 +10,7 @@ export default class Header {
 
     this.th = document.createElement('th');
     this.th.setAttribute('colspan', 5);
+    this.th.classList.add('title');
 
     const leftArrow = document.createElement('th');
     leftArrow.id = 'previousMonth';

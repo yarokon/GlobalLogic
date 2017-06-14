@@ -1,5 +1,6 @@
 import Header from './Header';
 import Month from './Month';
+import { WEEK_LENGTH, CALENDAR_LENGTH } from './constants';
 
 export default class Calendar {
   constructor(isMondayFirst=true) {
@@ -14,7 +15,8 @@ export default class Calendar {
 
   createTable() {
     this.table = document.createElement('table');
-    this.table.id = 'calendar';
+    this.table.id = Calendar.id;
+    Calendar.incrementId();
   }
 
   setCurrentDate() {
@@ -23,7 +25,8 @@ export default class Calendar {
     this.year = time.getFullYear();
     this.month = time.getMonth();
 
-    this.selectedDate = null;
+    this.selectedDate = localStorage.selectedDate;
+
     this.currentDay = this.markDay(time.getDate());
   }
 
@@ -64,12 +67,10 @@ export default class Calendar {
     const previousMonth = [],
           currentMonth = [],
           nextMonth = [];
-    const weekLength = 7,
-          calendarLength = weekLength * 6,
-          nextMonthLength = calendarLength - (firstDayCurrentMonth + lastDateCurrentMonth);
+    const nextMonthLength = CALENDAR_LENGTH - (firstDayCurrentMonth + lastDateCurrentMonth);
 
     if (firstDayCurrentMonth === 0) {
-      for (let i = lastDatePreviousMonth - weekLength + 1; i <= lastDatePreviousMonth; i++) {
+      for (let i = lastDatePreviousMonth - WEEK_LENGTH + 1; i <= lastDatePreviousMonth; i++) {
         previousMonth.push({
           currentMonth: false,
           dayNumber: i
@@ -93,10 +94,10 @@ export default class Calendar {
     }
 
     for (let i = 1; i <= nextMonthLength; i++) {
-        nextMonth.push({
-          currentMonth: false,
-          dayNumber: i
-        });
+      nextMonth.push({
+        currentMonth: false,
+        dayNumber: i
+      });
     }
 
     return {
@@ -113,12 +114,18 @@ export default class Calendar {
     this.table.append(this.headerInst.render(), this.monthInst.render());
 
     this.updateElements();
+    this.addHighlightedDay();
 
     if (target instanceof Element) {
       target.append(this.table);
     }
 
     return this.table;
+  }
+
+  remove() {
+    removeEventListener('click', this.clickEvent);
+    this.table.remove();
   }
 
   updateElements() {
@@ -132,21 +139,34 @@ export default class Calendar {
     this.updateElements();
   }
 
+  checkCurrentDay() {
+    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
+
+    if (currentDay) {
+      currentDay.classList.add('today');
+      this.currentDayElement = currentDay;
+    } else {
+      this.currentDayElement.classList.remove('today');
+    }
+  }
+
   addEvents() {
-    this.table.addEventListener('click', (e) => {
-      const target = e.target;
+    this.table.addEventListener('click', this.clickEvent.bind(this));
+  }
 
-      this.highlightDay(target);
+  clickEvent(e) {
+    const target = e.target;
 
-      switch (target.id) {
-        case 'previousMonth':
-          this.getPreviousMonth();
-          break;
-        case 'nextMonth':
-          this.getNextMonth();
-          break;
-      }
-    });
+    this.highlightDay(target);
+
+    switch (target.id) {
+      case 'previousMonth':
+        this.getPreviousMonth();
+        break;
+      case 'nextMonth':
+        this.getNextMonth();
+        break;
+    }
   }
 
   highlightDay(target) {
@@ -159,22 +179,12 @@ export default class Calendar {
 
       target.classList.add('highlighted');
       this.selectedDate = this.markDay(target.textContent);
+      localStorage.selectedDate = this.selectedDate;
     }
   }
 
   markDay(date) {
     return `${this.year}-${this.month}-${date}`;
-  }
-
-  checkCurrentDay() {
-    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
-
-    if (currentDay) {
-      currentDay.classList.add('today');
-      this.currentDayElement = currentDay;
-    } else {
-      this.currentDayElement.classList.remove('today');
-    }
   }
 
   getPreviousMonth() {
@@ -212,4 +222,14 @@ export default class Calendar {
     const newHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
     newHighlightedDay && newHighlightedDay.classList.add('highlighted');
   }
+
+  static incrementId() {
+    return Calendar._id++;
+  }
+  
+  static get id() {
+    return `calendar_${Calendar._id}`;
+  }
 }
+
+Calendar._id = 0;

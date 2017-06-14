@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 7);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -71,8 +71,24 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Header__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Month__ = __webpack_require__(3);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return WEEK_LENGTH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return WEEKS_NUMBER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CALENDAR_LENGTH; });
+const WEEK_LENGTH = 7;
+const WEEKS_NUMBER = 6;
+const CALENDAR_LENGTH = WEEK_LENGTH * WEEKS_NUMBER;
+
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Header__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Month__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(0);
+
 
 
 
@@ -89,7 +105,8 @@ class Calendar {
 
   createTable() {
     this.table = document.createElement('table');
-    this.table.id = 'calendar';
+    this.table.id = Calendar.id;
+    Calendar.incrementId();
   }
 
   setCurrentDate() {
@@ -98,7 +115,8 @@ class Calendar {
     this.year = time.getFullYear();
     this.month = time.getMonth();
 
-    this.selectedDate = null;
+    this.selectedDate = localStorage.selectedDate;
+
     this.currentDay = this.markDay(time.getDate());
   }
 
@@ -139,12 +157,10 @@ class Calendar {
     const previousMonth = [],
           currentMonth = [],
           nextMonth = [];
-    const weekLength = 7,
-          calendarLength = weekLength * 6,
-          nextMonthLength = calendarLength - (firstDayCurrentMonth + lastDateCurrentMonth);
+    const nextMonthLength = __WEBPACK_IMPORTED_MODULE_2__constants__["a" /* CALENDAR_LENGTH */] - (firstDayCurrentMonth + lastDateCurrentMonth);
 
     if (firstDayCurrentMonth === 0) {
-      for (let i = lastDatePreviousMonth - weekLength + 1; i <= lastDatePreviousMonth; i++) {
+      for (let i = lastDatePreviousMonth - __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* WEEK_LENGTH */] + 1; i <= lastDatePreviousMonth; i++) {
         previousMonth.push({
           currentMonth: false,
           dayNumber: i
@@ -168,10 +184,10 @@ class Calendar {
     }
 
     for (let i = 1; i <= nextMonthLength; i++) {
-        nextMonth.push({
-          currentMonth: false,
-          dayNumber: i
-        });
+      nextMonth.push({
+        currentMonth: false,
+        dayNumber: i
+      });
     }
 
     return {
@@ -188,12 +204,18 @@ class Calendar {
     this.table.append(this.headerInst.render(), this.monthInst.render());
 
     this.updateElements();
+    this.addHighlightedDay();
 
     if (target instanceof Element) {
       target.append(this.table);
     }
 
     return this.table;
+  }
+
+  remove() {
+    removeEventListener('click', this.clickEvent);
+    this.table.remove();
   }
 
   updateElements() {
@@ -207,21 +229,34 @@ class Calendar {
     this.updateElements();
   }
 
+  checkCurrentDay() {
+    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
+
+    if (currentDay) {
+      currentDay.classList.add('today');
+      this.currentDayElement = currentDay;
+    } else {
+      this.currentDayElement.classList.remove('today');
+    }
+  }
+
   addEvents() {
-    this.table.addEventListener('click', (e) => {
-      const target = e.target;
+    this.table.addEventListener('click', this.clickEvent.bind(this));
+  }
 
-      this.highlightDay(target);
+  clickEvent(e) {
+    const target = e.target;
 
-      switch (target.id) {
-        case 'previousMonth':
-          this.getPreviousMonth();
-          break;
-        case 'nextMonth':
-          this.getNextMonth();
-          break;
-      }
-    });
+    this.highlightDay(target);
+
+    switch (target.id) {
+      case 'previousMonth':
+        this.getPreviousMonth();
+        break;
+      case 'nextMonth':
+        this.getNextMonth();
+        break;
+    }
   }
 
   highlightDay(target) {
@@ -234,22 +269,12 @@ class Calendar {
 
       target.classList.add('highlighted');
       this.selectedDate = this.markDay(target.textContent);
+      localStorage.selectedDate = this.selectedDate;
     }
   }
 
   markDay(date) {
     return `${this.year}-${this.month}-${date}`;
-  }
-
-  checkCurrentDay() {
-    const currentDay = this.table.querySelector(`[data-day='${this.currentDay}']`);
-
-    if (currentDay) {
-      currentDay.classList.add('today');
-      this.currentDayElement = currentDay;
-    } else {
-      this.currentDayElement.classList.remove('today');
-    }
   }
 
   getPreviousMonth() {
@@ -287,12 +312,22 @@ class Calendar {
     const newHighlightedDay = this.table.querySelector(`[data-day="${this.selectedDate}"]`);
     newHighlightedDay && newHighlightedDay.classList.add('highlighted');
   }
+
+  static incrementId() {
+    return Calendar._id++;
+  }
+  
+  static get id() {
+    return `calendar_${Calendar._id}`;
+  }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Calendar;
 
 
+Calendar._id = 0;
+
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -321,11 +356,11 @@ class Day {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Weekdays__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Weekdays__ = __webpack_require__(6);
 
 
 class Header {
@@ -338,6 +373,7 @@ class Header {
 
     this.th = document.createElement('th');
     this.th.setAttribute('colspan', 5);
+    this.th.classList.add('title');
 
     const leftArrow = document.createElement('th');
     leftArrow.id = 'previousMonth';
@@ -377,11 +413,13 @@ class Header {
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Week__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Week__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
+
 
 
 class Month {
@@ -389,8 +427,8 @@ class Month {
     const weeksArrOptions = [];
     const allDaysOptions = [].concat( ...Object.values(monthsOptions) );
 
-    for (let i = 1; i <= 6; i++) {
-      weeksArrOptions.push( allDaysOptions.splice(0, 7) );
+    for (let i = 1; i <= __WEBPACK_IMPORTED_MODULE_1__constants__["c" /* WEEKS_NUMBER */]; i++) {
+      weeksArrOptions.push( allDaysOptions.splice(0, __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* WEEK_LENGTH */]) );
     }
 
     return weeksArrOptions;
@@ -401,7 +439,7 @@ class Month {
 
     this.weeksArr = [];
 
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= __WEBPACK_IMPORTED_MODULE_1__constants__["c" /* WEEKS_NUMBER */]; i++) {
       this.weeksArr.push( new __WEBPACK_IMPORTED_MODULE_0__Week__["a" /* default */]() );
     }
 
@@ -426,11 +464,13 @@ class Month {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Day__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Day__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(0);
+
 
 
 class Week {
@@ -439,7 +479,7 @@ class Week {
 
     this.daysArr = [];
 
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* WEEK_LENGTH */]; i++) {
       this.daysArr.push( new __WEBPACK_IMPORTED_MODULE_0__Day__["a" /* default */]() );
     }
 
@@ -462,7 +502,7 @@ class Week {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -496,12 +536,12 @@ class Weekdays {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Calendar__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Calendar__ = __webpack_require__(1);
 
 
 const section = document.querySelector('section');
