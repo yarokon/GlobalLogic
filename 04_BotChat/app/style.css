@@ -1,0 +1,124 @@
+body {
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  margin: 0;
+}
+
+main {
+  display: flex;
+  height: 100vh;
+}
+
+section {
+  flex: 6;
+  padding: 20px;
+  overflow-y: scroll;
+}
+
+aside {
+  flex: 3;
+  position: relative;
+  padding: 20px 10px;
+  overflow: auto;
+}
+
+.user {
+  display: flex;
+  position: relative;
+  min-width: 320px;
+  padding: 5px 0;
+  margin: 10px 5px;
+  border: 2px solid navy;
+  border-radius: 10px;
+  align-items: center;
+}
+
+.user >  img {
+  width: 80px;
+  height: 80px;
+  margin: 0 10px;
+  border-radius: 50%;
+}
+.user > address {
+  font-style: normal;
+  text-transform: capitalize;
+}
+
+.user h2,
+.user p {
+  margin: 3px 0;
+}
+
+.user h2 {
+  margin-bottom: 6px;
+  font-size: 1.2em;
+  color: green;
+}
+
+.user > .delete {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 22px;
+  background: #f44336;
+  color: white;
+  cursor: pointer;
+  display: none;
+}
+
+.user:hover > .delete {
+  display: block;
+}
+
+/********************************/
+
+.message {
+  display: flex;
+  padding: 5px 0;
+  margin: 10px 5px;
+  border-radius: 20px 10px;
+  align-items: flex-start;
+  background: lightblue;
+}
+
+.message > img {
+  width: 100px;
+  height: 100px;
+  margin: 0 10px;
+  border-radius: 15px;
+}
+
+.message > address {
+  font-style: normal;
+  text-transform: capitalize;
+  padding-left: 5px;
+}
+
+.message h2,
+.message p {
+  margin: 5px 0;
+}
+
+.message h2 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+aside #addUser {
+  position: absolute;
+  bottom: 20px;
+  width: 180px;
+  height: 40px;
+  line-height: 40px;
+  margin: auto;
+  border-radius: 5px;
+  text-align: center;
+  background: #2196F3;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
