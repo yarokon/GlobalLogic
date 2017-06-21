@@ -84,13 +84,13 @@ export default class User {
 
   generateMessages(options) {
     const tick = () => {
-      const time = randomTime(10, 60);
+      const time = randomTime(15, 60);
       this.timerId = setTimeout(tick, time);
 
       this.showMessage(options);
     };
 
-    this.timerId = setTimeout(tick, randomTime(15, 30));
+    this.timerId = setTimeout(tick, randomTime(5, 30));
   }
 
   addDeleteEvent() {

@@ -5,6 +5,7 @@ body {
 
 main {
   display: flex;
+  flex-wrap: wrap;
   height: 100vh;
 }
 
@@ -15,10 +16,10 @@ section {
 }
 
 aside {
+  display: inline-flex;
+  flex-direction: column;
   flex: 3;
-  position: relative;
   padding: 20px 10px;
-  overflow: auto;
 }
 
 .user {
@@ -91,7 +92,7 @@ aside {
   border-radius: 15px;
 }
 
-.message > address {
+.message > .content {
   font-style: normal;
   text-transform: capitalize;
   padding-left: 5px;
@@ -108,12 +109,11 @@ aside {
 }
 
 aside #addUser {
-  position: absolute;
-  bottom: 20px;
+  margin: auto;
+  margin-bottom: 10px;
   width: 180px;
   height: 40px;
   line-height: 40px;
-  margin: auto;
   border-radius: 5px;
   text-align: center;
   background: #2196F3;
@@ -121,4 +121,13 @@ aside #addUser {
   font-weight: bold;
   cursor: pointer;
   user-select: none;
+}
+
+@media screen and (max-width: 780px) {
+  section {
+    flex: 1 100%;
+  }
+  aside {
+     flex: 1 100%;
+  }
 }

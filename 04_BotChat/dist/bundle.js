@@ -158,13 +158,13 @@ class User {
 
   generateMessages(options) {
     const tick = () => {
-      const time = randomTime(10, 60);
+      const time = randomTime(15, 60);
       this.timerId = setTimeout(tick, time);
 
       this.showMessage(options);
     };
 
-    this.timerId = setTimeout(tick, randomTime(15, 30));
+    this.timerId = setTimeout(tick, randomTime(5, 30));
   }
 
   addDeleteEvent() {
@@ -225,13 +225,14 @@ class Message {
     this.username = username;
     this.age = age;
 
+    this.audio = new Audio('sounds/notification.mp3');
     this.requestText();
   }
 
   requestText() {
     const xhr = new XMLHttpRequest();
 
-    xhr.open('GET', 'http://www.randomtext.me/api/gibberish/p-1/10-40', true);
+    xhr.open('GET', 'https://www.randomtext.me/api/gibberish/p-1/10-40', true);
     xhr.send();
 
     xhr.addEventListener('load', this.saveText.bind(this));
@@ -255,8 +256,7 @@ class Message {
 
     section.insertAdjacentHTML('beforeEnd', template);
 
-    const audio = new Audio('sounds/notification.mp3');
-    audio.play();
+    this.audio.play();
 
     const article = section.querySelector('article:last-child');
     article.scrollIntoView(false);
@@ -266,10 +266,10 @@ class Message {
     const template = `
       <article class="message">
         <img src="${this.avatar}" alt="avatar">
-        <address>
+        <div class="content">
           <h2>${this.username} (${this.age})</h2>
           ${text}
-        </address>
+        </div>
       </article>`;
 
     return template;
@@ -288,23 +288,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 const button = document.getElementById('addUser');
+
 button.addEventListener('click', () => {
   if (__WEBPACK_IMPORTED_MODULE_0__User__["a" /* default */].count < 5) {
     new __WEBPACK_IMPORTED_MODULE_0__User__["a" /* default */]();
   }
 });
-
-const aside = document.querySelector('aside');
-
-const centerButton = () => {
-  button.style.left = (aside.offsetWidth - button.offsetWidth) / 2 + 'px';
-};
-
-centerButton();
-
-window.onresize = () => {
-  centerButton();
-};
 
 /***/ })
 /******/ ]);

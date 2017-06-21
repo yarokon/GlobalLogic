@@ -4,13 +4,14 @@ export default class Message {
     this.username = username;
     this.age = age;
 
+    this.audio = new Audio('sounds/notification.mp3');
     this.requestText();
   }
 
   requestText() {
     const xhr = new XMLHttpRequest();
 
-    xhr.open('GET', 'http://www.randomtext.me/api/gibberish/p-1/10-40', true);
+    xhr.open('GET', 'https://www.randomtext.me/api/gibberish/p-1/10-40', true);
     xhr.send();
 
     xhr.addEventListener('load', this.saveText.bind(this));
@@ -34,8 +35,7 @@ export default class Message {
 
     section.insertAdjacentHTML('beforeEnd', template);
 
-    const audio = new Audio('sounds/notification.mp3');
-    audio.play();
+    this.audio.play();
 
     const article = section.querySelector('article:last-child');
     article.scrollIntoView(false);
@@ -45,10 +45,10 @@ export default class Message {
     const template = `
       <article class="message">
         <img src="${this.avatar}" alt="avatar">
-        <address>
+        <div class="content">
           <h2>${this.username} (${this.age})</h2>
           ${text}
-        </address>
+        </div>
       </article>`;
 
     return template;
