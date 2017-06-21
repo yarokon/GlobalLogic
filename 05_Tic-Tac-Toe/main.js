@@ -49,11 +49,10 @@ table.addEventListener('drop', e => {
   dragging = false;
 
   if (content) {
-    const clonedElement = content.cloneNode(true);
-    clonedElement.draggable = false;
-    target.append(clonedElement);
+    const value = content.textContent;
 
-    state[target.dataset.index] = clonedElement.textContent;
+    target.append(value);
+    state[target.dataset.index] = value;
 
     step++;
     checkWinner(markWinningLines);
@@ -90,10 +89,15 @@ function checkWinner(callback) {
 
   if (isWon && typeof callback === 'function') {
     callback(winningNumbers);
-    section.remove();
-  } else if (!isWon && step === 9) {
-    section.remove();
+    displayReloadButton();
+  } else if (step === 9) {
+    displayReloadButton();
   }
+}
+
+function displayReloadButton() {
+  section.remove();
+  document.getElementById('reload').style.display = 'block';
 }
 
 function switchPlayer() {

@@ -10,8 +10,6 @@ body {
 }
 
 #board td {
-  width: 100px;
-  height: 100px;
   border-right: 5px solid black;
   border-bottom: 5px solid black;
   background: white;
@@ -34,7 +32,7 @@ body {
   background: #8bc34a;
 }
 
-#board div,
+#board td,
 #store div {
   width: 100px;
   height: 100px;
@@ -60,4 +58,13 @@ body {
 
 #store :not(.active) {
   display: none;
+}
+
+button#reload {
+  display: none;
+  padding: 5px 20px;
+  margin: 60px auto;
+  text-align: center;
+  font-size: 1.2em;
+  cursor: pointer;
 }
